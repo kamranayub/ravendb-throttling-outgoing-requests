@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Raven.Client.Documents.Session;
 
@@ -38,6 +37,9 @@ namespace throttling_ravendb {
       limitCounters.Increment("requests");
 
       await session.SaveChangesAsync();
+
+      // simulate external latency
+      await Task.Delay(500);
     }
   }
 
