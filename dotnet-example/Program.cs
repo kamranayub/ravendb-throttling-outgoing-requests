@@ -1,34 +1,44 @@
 ﻿using System;
 using System.Threading.Tasks;
+using dotnet_example.Configuration;
 using Microsoft.Extensions.Configuration;
-using Raven.Client.Documents;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace throttling_ravendb
+namespace dotnet_example
 {
     class Program
     {
         public static IConfigurationRoot Configuration { get; set; }
-        
+
         static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder();
             // tell the builder to look for the appsettings.json file
             builder
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-                
-            var store = new DocumentStore() {
-                Urls = new string[] {
+            builder.AddUserSecrets<Program>();
+            Configuration = builder.Build();
 
-                },
-                Database = ""
-            };
+            IServiceCollection services = new ServiceCollection();
+            services
+                .Configure<RavenDB>(Configuration.GetSection(nameof(RavenDB)))
+                .AddOptions()
+                .AddSingleton<SendRequests>()
+                .AddSingleton<ExternalApi>()
+                .BuildServiceProvider();
 
-            store.Initialize();
-            
-            using (var session = store.OpenAsyncSession()) 
+            var serviceProvider = services.BuildServiceProvider();
+            var sender = serviceProvider.GetService<SendRequests>();
+
+            Console.WriteLine("Initiating sender. Throttling to 10 requests every 30 seconds. Press any key to exit.");
+
+            do
             {
-
-            }
+                while (!Console.KeyAvailable)
+                {
+                    await sender.SendRequest();
+                }
+            } while (Console.ReadKey(true) == null);
         }
     }
 }

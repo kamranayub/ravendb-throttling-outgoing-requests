@@ -1,4 +1,4 @@
-namespace throttling_ravendb.Configuration
+namespace dotnet_example.Configuration
 {
   public class RavenDB
   {
