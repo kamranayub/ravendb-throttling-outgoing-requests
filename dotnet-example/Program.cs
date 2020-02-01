@@ -23,20 +23,20 @@ namespace dotnet_example
             services
                 .Configure<RavenDB>(Configuration.GetSection(nameof(RavenDB)))
                 .AddOptions()
-                .AddSingleton<SendRequests>()
+                .AddSingleton<Client>()
                 .AddSingleton<ExternalApi>()
                 .BuildServiceProvider();
 
             var serviceProvider = services.BuildServiceProvider();
-            var sender = serviceProvider.GetService<SendRequests>();
+            var client = serviceProvider.GetService<Client>();
 
-            Console.WriteLine("Initiating sender. Throttling to 10 requests every 30 seconds. Press any key to exit.");
+            Console.WriteLine($"Initiating client. Throttling to {Client.REQUEST_LIMIT} requests every {Client.TTL_IN_SECONDS} seconds. Press any key to exit.");
 
             do
             {
                 while (!Console.KeyAvailable)
                 {
-                    await sender.SendRequest();
+                    await client.SendRequest();
                 }
             } while (Console.ReadKey(true) == null);
         }

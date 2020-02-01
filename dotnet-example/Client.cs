@@ -5,16 +5,17 @@ using dotnet_example.Configuration;
 using Microsoft.Extensions.Options;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
+using Raven.Client.Exceptions;
+using Raven.Client.Exceptions.Documents;
 
 namespace dotnet_example
 {
-
-
-    public class SendRequests
+    public class Client
     {
         IDocumentStore _store;
         ExternalApi _externalApi;
 
+        public const string RATE_LIMIT_ID = "rate_limit";
         public const int REQUEST_LIMIT = 30;
         public const int TTL_IN_SECONDS = 30;
 
@@ -23,7 +24,7 @@ namespace dotnet_example
             public string Id { get; set; }
         }
 
-        public SendRequests(IOptions<RavenDB> ravendb, ExternalApi externalApi)
+        public Client(IOptions<RavenDB> ravendb, ExternalApi externalApi)
         {
             var config = ravendb.Value ?? throw new ArgumentNullException(nameof(ravendb));
 
@@ -46,20 +47,19 @@ namespace dotnet_example
         {
             using (var session = _store.OpenAsyncSession())
             {
-                var limiter = await session.LoadAsync<RateLimit>("rate_limit");
-                IMetadataDictionary metadata;
+                var limiter = await session.LoadAsync<RateLimit>(RATE_LIMIT_ID);
 
                 if (limiter == null)
                 {
                     limiter = new RateLimit()
                     {
-                        Id = "rate_limit"
+                        Id = RATE_LIMIT_ID
                     };
 
                     await session.StoreAsync(limiter);
 
                     // expire rate limit every 30 seconds
-                    metadata = session.Advanced.GetMetadataFor(limiter);
+                    var metadata = session.Advanced.GetMetadataFor(limiter);
                     metadata.Add(
                         Raven.Client.Constants.Documents.Metadata.Expires,
                         DateTimeOffset.UtcNow.AddSeconds(TTL_IN_SECONDS)
@@ -67,39 +67,47 @@ namespace dotnet_example
 
                     await session.SaveChangesAsync();
                 }
-                else
+
+                // Get available counters
+                var limitCounters = session.CountersFor(limiter);
+
+                // Check existing request limit
+                var existingRequests = await limitCounters.GetAsync("requests");
+
+                if (existingRequests != null && existingRequests >= REQUEST_LIMIT)
                 {
-                    metadata = session.Advanced.GetMetadataFor(limiter);
-                }
+                    WriteRequestInfo(true, existingRequests);
 
-                DateTimeOffset expiresAt = DateTimeOffset.Parse(
-                    metadata.GetString(Raven.Client.Constants.Documents.Metadata.Expires));
-
-                var limitCounters = session.CountersFor(limiter.Id);
-                var requests = await limitCounters.GetAsync("requests");
-
-                if (requests != null && requests >= REQUEST_LIMIT)
-                {
-                    WriteRequestInfo(true, requests, expiresAt);
+                    // Abort request. In a more sophisticated solution we could defer,
+                    // exponentially back-off, or re-enqueue the message at a later time.
                     return;
                 }
 
-                WriteRequestInfo(false, requests, expiresAt);
+                WriteRequestInfo(false, existingRequests);
 
-                // track request
-                limitCounters.Increment("requests");
-                await session.SaveChangesAsync();
-
-                // send external request
-                await _externalApi.Fetch();
+                try
+                {
+                    // increment request counter to prepare
+                    limitCounters.Increment("requests");
+                    await session.SaveChangesAsync();
+                }
+                catch (DocumentDoesNotExistException)
+                {
+                    // OK, the document just expired  
+                    // We'll try again since we don't want to
+                    // generate another request  
+                    return;
+                }
             }
+
+            // send external request
+            await _externalApi.Fetch();
         }
 
-        private void WriteRequestInfo(bool reachedLimit, long? requests, DateTimeOffset expiresAt)
+        private void WriteRequestInfo(bool reachedLimit, long? requests)
         {
-            var remaining = DateTimeOffset.UtcNow - expiresAt;
             Console.Clear();
-            Console.WriteLine($"Request Count: {requests ?? 0}/{REQUEST_LIMIT}, Throttled: {reachedLimit}, Expires In: {remaining.Duration()}");
+            Console.WriteLine($"Request Count: {requests ?? 0}/{REQUEST_LIMIT}, Throttled: {reachedLimit}");
         }
     }
 }
