@@ -17,7 +17,7 @@ namespace dotnet_example
 
         public const string RATE_LIMIT_ID = "RateLimit/ExternalApi";
         public const int REQUEST_LIMIT = 30;
-        public const int TTL_IN_SECONDS = 30;
+        public const int SLIDING_TIME_WINDOW_IN_SECONDS = 30;
 
         private class RateLimit
         {
@@ -62,7 +62,7 @@ namespace dotnet_example
                     var metadata = session.Advanced.GetMetadataFor(limiter);
                     metadata.Add(
                         Raven.Client.Constants.Documents.Metadata.Expires,
-                        DateTimeOffset.UtcNow.AddSeconds(TTL_IN_SECONDS)
+                        DateTimeOffset.UtcNow.AddSeconds(SLIDING_TIME_WINDOW_IN_SECONDS)
                     );
 
                     await session.SaveChangesAsync();

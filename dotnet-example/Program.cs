@@ -30,7 +30,7 @@ namespace dotnet_example
             var serviceProvider = services.BuildServiceProvider();
             var client = serviceProvider.GetService<Client>();
 
-            Console.WriteLine($"Initiating client. Throttling to {Client.REQUEST_LIMIT} requests every {Client.TTL_IN_SECONDS} seconds. Press any key to exit.");
+            Console.WriteLine($"Initiating client. Throttling to {Client.REQUEST_LIMIT} requests every {Client.SLIDING_TIME_WINDOW_IN_SECONDS} seconds. Press any key to exit.");
 
             do
             {
