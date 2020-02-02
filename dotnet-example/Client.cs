@@ -15,7 +15,7 @@ namespace dotnet_example
         IDocumentStore _store;
         ExternalApi _externalApi;
 
-        public const string RATE_LIMIT_ID = "rate_limit";
+        public const string RATE_LIMIT_ID = "RateLimit/ExternalApi";
         public const int REQUEST_LIMIT = 30;
         public const int TTL_IN_SECONDS = 30;
 
