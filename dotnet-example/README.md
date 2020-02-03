@@ -1,5 +1,10 @@
 ## .NET Core Example
 
+- Link to article: TBD
+- Video of demo running: https://youtu.be/YAstKXjtSEM
+
+### Getting Started
+
 1. Create a free [RavenDB Cloud](https://cloud.ravendb.com) instance
 1. [Create a client certificate](https://ravendb.net/docs/article-page/4.2/csharp/server/security/authentication/certificate-management) for connecting via .NET
    1. Go into the Studio for your database in RavenDB Cloud
@@ -10,7 +15,7 @@
 1. Create user secrets
    1. Run `dotnet user-secrets init`
    1. Run `dotnet user-secrets set RavenDB:DatabaseUrls:0 "<RAVENDB_URL>"` replacing the token with your RavenDB instance URL
-   1. Run `dotnet user-secrets set RavenDB.DatabaseName "<RAVENDB_DATABASE_NAME>"` replacing the token with your RavenDB DB name
+   1. Run `dotnet user-secrets set RavenDB.DatabaseName "<RAVENDB_DATABASE_NAME>"` replacing the token with your RavenDB DB name (e.g. `throttle`)
    1. Run `dotnet user-secrets set RavenDB.CertPath "<CERT_PATH>"` replacing the token with the full path to your Client Certificate (.pfx) file, downloaded from RavenDB Cloud
 1. Run `dotnet publish`
 1. Navigate to `bin\Debug\netcoreapp3.1` and run the `throttling-ravendb.exe` program. Open the program multiple times to demonstrate separate isolated processes being throttled.
