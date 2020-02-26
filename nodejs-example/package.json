@@ -1,0 +1,16 @@
+{
+  "name": "ravendb-throttling-outgoing-requests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "date-fns": "^2.10.0",
+    "dotenv-safe": "^8.2.0",
+    "ravendb": "^4.1.6"
+  }
+}
