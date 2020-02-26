@@ -1,6 +1,6 @@
 ## .NET Core Example
 
-- Link to article: TBD
+- Link to article: https://www.codeproject.com/Articles/5260137/Throttling-Outgoing-HTTP-Requests-in-a-Distributed
 - Video of demo running: https://youtu.be/YAstKXjtSEM
 
 ### Getting Started
