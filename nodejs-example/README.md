@@ -1,6 +1,6 @@
 ## Node.js Example
 
-- Link to article: TBD
+- Link to article: https://www.codeproject.com/Articles/5260913/Throttling-Outgoing-HTTP-Requests-in-a-Distribut-2
 - Video of demo running: https://youtu.be/YAstKXjtSEM
 
 ### Getting Started
@@ -31,4 +31,4 @@ If you launch multiple processes, they will all respect the same expiration wind
 - When the request limit is exceeded, the program retries in a tight loop. In a production app, you would be better off deferring execution until the time window has lapsed.
 - You may notice that even when the document expires, it is not deleted. This is because by default documents that are expired [may take up to 60 seconds](https://ravendb.net/docs/article-page/4.2/csharp/server/extensions/expiration#eventual-consistency-considerations) to be removed.
 
-These limitations could be worked around using more error checking but in the real world, these are unlikely to cause much of an issue with appropriate retry logic and API exception handling. For example, I use [message queueing](https://www.cloudamqp.com/blog/2014-12-03-what-is-message-queuing.html) and [Polly](https://github.com/App-vNext/Polly) for distributed scenarios like this.
+These limitations could be worked around using more error checking but in the real world, these are unlikely to cause much of an issue with appropriate retry logic and API exception handling. For example, I use [message queueing](https://www.cloudamqp.com/blog/2014-12-03-what-is-message-queuing.html) for distributed scenarios like this.
